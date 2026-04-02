@@ -34,12 +34,16 @@ Phase 1 implementation of the **Macro Runner Section**.
    ```
 4. Start backend:
    ```bash
-   npm run dev
+   npm run start
    ```
 
 ## Frontend Setup
 
-Serve `frontend/` with a static server (for example VSCode Live Server) and open `index.html`.
+Frontend is now served directly by the backend. Open:
+
+```text
+http://localhost:3000
+```
 
 ## API Endpoints
 
@@ -59,4 +63,3 @@ Serve `frontend/` with a static server (for example VSCode Live Server) and open
 - Upload extension validation.
 - Upload file size limits.
 - Basic suspicious macro pattern checks before execution.
-

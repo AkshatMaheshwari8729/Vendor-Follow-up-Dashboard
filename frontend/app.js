@@ -23,7 +23,8 @@ const refs = {
   dropzone: document.getElementById('dropzone'),
 };
 
-const apiBase = 'http://localhost:3000';
+const apiBase =
+  window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
 
 const showLoader = (show) => refs.loader.classList.toggle('hidden', !show);
 
@@ -278,3 +279,16 @@ refs.inputsForm.addEventListener('submit', uploadInputs);
 refs.runMacroBtn.addEventListener('click', runMacro);
 refs.downloadBtn.addEventListener('click', downloadOutput);
 wireDragAndDrop();
+
+fetch(`${apiBase}/health`)
+  .then((res) => {
+    if (!res.ok) {
+      throw new Error('Backend health check failed.');
+    }
+  })
+  .catch(() => {
+    setLogs(
+      'Backend is not reachable. Start the server with: cd backend && npm install && npm run start'
+    );
+    toast('Backend is not running. Start backend server first.', true);
+  });
