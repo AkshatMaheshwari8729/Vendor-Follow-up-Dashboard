@@ -25,8 +25,15 @@ const refs = {
   saveApiBaseBtn: document.getElementById('saveApiBaseBtn'),
 };
 
-const getDefaultApiBase = () =>
-  window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+const getDefaultApiBase = () => {
+  if (window.location.protocol === 'file:') {
+    return 'http://localhost:3000';
+  }
+
+  const host = window.location.hostname;
+  const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+  return isLocalHost ? window.location.origin : '';
+};
 
 let apiBase = localStorage.getItem('vendor_api_base') || getDefaultApiBase();
 
@@ -40,6 +47,33 @@ const toast = (message, isError = false) => {
 
 const setLogs = (text) => {
   refs.logSection.textContent = text || '';
+};
+
+const ensureApiBase = () => {
+  if (!apiBase) {
+    throw new Error('Set Backend API Base URL first (for example: https://your-backend-domain.com).');
+  }
+};
+
+const apiFetchJson = async (endpoint, options = {}) => {
+  ensureApiBase();
+  const response = await fetch(`${apiBase}${endpoint}`, options);
+  const contentType = response.headers.get('content-type') || '';
+
+  if (!contentType.includes('application/json')) {
+    const raw = await response.text();
+    const preview = raw.slice(0, 120).replace(/\s+/g, ' ');
+    throw new Error(
+      `API did not return JSON for ${endpoint}. Check Backend API Base URL. Response starts with: ${preview}`
+    );
+  }
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || `Request failed for ${endpoint}`);
+  }
+
+  return data;
 };
 
 const saveApiBase = () => {
@@ -70,31 +104,21 @@ const uploadMacro = async () => {
   setLogs('Uploading macro file...');
 
   try {
-    const uploadRes = await fetch(`${apiBase}/upload-macro`, {
+    const uploadJson = await apiFetchJson('/upload-macro', {
       method: 'POST',
       body: data,
     });
-
-    const uploadJson = await uploadRes.json();
-    if (!uploadRes.ok) {
-      throw new Error(uploadJson.message || 'Upload failed');
-    }
 
     state.macroFileId = uploadJson.fileId;
     state.macroFilename = uploadJson.filename;
 
     setLogs('Analyzing macro modules using Gemini...');
 
-    const analyzeRes = await fetch(`${apiBase}/analyze-macro`, {
+    const analyzeJson = await apiFetchJson('/analyze-macro', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileId: state.macroFileId }),
     });
-
-    const analyzeJson = await analyzeRes.json();
-    if (!analyzeRes.ok) {
-      throw new Error(analyzeJson.message || 'Analysis failed');
-    }
 
     state.modules = analyzeJson.modules || [];
     renderModules();
@@ -192,15 +216,10 @@ const uploadInputs = async (event) => {
   setLogs('Uploading input files...');
 
   try {
-    const res = await fetch(`${apiBase}/upload-inputs`, {
+    const json = await apiFetchJson('/upload-inputs', {
       method: 'POST',
       body: data,
     });
-
-    const json = await res.json();
-    if (!res.ok) {
-      throw new Error(json.message || 'Input upload failed');
-    }
 
     state.inputsUploadId = json.inputsUploadId;
     refs.runMacroBtn.disabled = false;
@@ -224,7 +243,7 @@ const runMacro = async () => {
   setLogs('Running macro... This may take time depending on Excel automation.');
 
   try {
-    const res = await fetch(`${apiBase}/run-macro`, {
+    const json = await apiFetchJson('/run-macro', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -233,11 +252,6 @@ const runMacro = async () => {
         inputsUploadId: state.inputsUploadId,
       }),
     });
-
-    const json = await res.json();
-    if (!res.ok) {
-      throw new Error(json.message || 'Macro execution failed');
-    }
 
     state.outputFileId = json.outputFileId;
     refs.downloadBtn.disabled = false;
@@ -252,6 +266,13 @@ const runMacro = async () => {
 };
 
 const downloadOutput = () => {
+  try {
+    ensureApiBase();
+  } catch (error) {
+    toast(error.message, true);
+    return;
+  }
+
   if (!state.outputFileId) {
     toast('No output file available yet.', true);
     return;
@@ -299,7 +320,10 @@ refs.saveApiBaseBtn.addEventListener('click', saveApiBase);
 wireDragAndDrop();
 refs.apiBaseInput.value = apiBase;
 
-fetch(`${apiBase}/health`)
+if (!apiBase) {
+  setLogs('Set Backend API Base URL to begin. Example: https://your-backend-domain.com');
+} else {
+  fetch(`${apiBase}/health`)
   .then((res) => {
     if (!res.ok) {
       throw new Error('Backend health check failed.');
@@ -311,3 +335,4 @@ fetch(`${apiBase}/health`)
     );
     toast('Backend is not running. Start backend server first.', true);
   });
+}

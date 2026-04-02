@@ -56,6 +56,15 @@ Netlify hosts only static files, so deploy the `frontend/` directory and host ba
 
 If backend URL is missing or unreachable, uploads/runs will fail and logs will show a warning.
 
+### Common error: `Unexpected token '<', "<!DOCTYPE"... is not valid JSON`
+
+This means the frontend called a URL that returned HTML instead of backend JSON (usually Netlify page HTML).
+
+Fix:
+1. Set the **Backend API Base URL** in the app header to your deployed backend URL.
+2. Save it and retry upload.
+3. Verify `${API_BASE}/health` returns JSON.
+
 ## API Endpoints
 
 - `POST /upload-macro`
