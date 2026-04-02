@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vendor Follow-up Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <h1>Vendor Follow-up Dashboard</h1>
+        </div>
+        <nav>
+          <button class="nav-item active">Vendor Follow-up Template</button>
+          <button class="nav-item" disabled>Vendor Tracker (Coming Soon)</button>
+          <button class="nav-item" disabled>Follow-up Reminders (Coming Soon)</button>
+          <button class="nav-item" disabled>Email Automation (Coming Soon)</button>
+          <button class="nav-item" disabled>Data Visualizations (Coming Soon)</button>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="panel-header">
+          <h2>Macro Runner - Vendor Follow-up Template</h2>
+          <p>Upload your macro workbook, pick a module, provide input files, and run.</p>
+          <div class="api-config">
+            <label for="apiBaseInput">Backend API Base URL</label>
+            <input id="apiBaseInput" type="text" placeholder="https://your-backend-domain.com" />
+            <button id="saveApiBaseBtn" class="btn secondary" type="button">Save API URL</button>
+          </div>
+        </header>
+
+        <section class="card" id="macroUploadCard">
+          <h3>1) Upload Macro-enabled Excel (.xlsm)</h3>
+          <label id="dropzone" class="dropzone" for="macroFileInput">
+            <input id="macroFileInput" type="file" accept=".xlsm,.xlsx" hidden />
+            <span class="dropzone-title">Drag & drop file here or click to browse</span>
+            <span id="macroFileName" class="file-name"></span>
+          </label>
+          <div class="actions-row">
+            <button id="uploadMacroBtn" class="btn primary">Upload & Analyze</button>
+          </div>
+        </section>
+
+        <section class="card" id="moduleCard">
+          <h3>2) Module Preview</h3>
+          <p class="muted">Detected using Gemini 3 Pro analysis.</p>
+          <div id="moduleList" class="module-list empty">No modules detected yet.</div>
+        </section>
+
+        <section class="card" id="inputsCard">
+          <h3>3) Upload Required Inputs</h3>
+          <form id="inputsForm">
+            <div id="dynamicInputs" class="dynamic-inputs"></div>
+            <div class="actions-row">
+              <button type="submit" id="uploadInputsBtn" class="btn secondary" disabled>
+                Upload Inputs
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section class="card" id="runCard">
+          <h3>4) Run Macro</h3>
+          <div class="actions-row">
+            <button id="runMacroBtn" class="btn success" disabled>Run Selected Macro</button>
+          </div>
+          <div id="logSection" class="log-section"></div>
+        </section>
+
+        <section class="card" id="outputCard">
+          <h3>5) Output</h3>
+          <div class="actions-row">
+            <button id="downloadBtn" class="btn primary" disabled>Download Processed File</button>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="loader" class="loader hidden">Processing...</div>
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

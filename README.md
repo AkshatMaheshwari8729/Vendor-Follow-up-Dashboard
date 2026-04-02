@@ -1,0 +1,97 @@
+# Vendor Follow-up Dashboard
+
+Phase 1 implementation of the **Macro Runner Section**.
+
+## Project Structure
+
+```text
+/vendor-dashboard
+  /frontend
+    index.html
+    style.css
+    app.js
+  /backend
+    server.js
+    /routes
+    /controllers
+    /services
+    /uploads
+```
+
+## Backend Setup
+
+1. Go to backend folder:
+   ```bash
+   cd backend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Configure environment:
+   ```bash
+   cp .env.example .env
+   ```
+4. Start backend:
+   ```bash
+   npm run start
+   ```
+
+## Frontend Setup
+
+Frontend is now served directly by the backend. Open:
+
+```text
+http://localhost:3000
+```
+
+## Deploying Frontend to Netlify
+
+Netlify hosts only static files, so deploy the `frontend/` directory and host backend separately (Render/Railway/VM).
+
+1. Ensure your backend is deployed and reachable (example: `https://vendor-api.example.com`).
+2. In Netlify, set publish directory to `frontend` (or use included `netlify.toml`).
+3. Open the deployed page and set **Backend API Base URL** at the top of the dashboard.
+4. Click **Save API URL**. It is stored in browser local storage.
+
+If backend URL is missing or unreachable, uploads/runs will fail and logs will show a warning.
+
+### Common error: `Unexpected token '<', "<!DOCTYPE"... is not valid JSON`
+
+This means the frontend called a URL that returned HTML instead of backend JSON (usually Netlify page HTML).
+
+Fix:
+1. Set the **Backend API Base URL** in the app header to your deployed backend URL.
+2. Save it and retry upload.
+3. Verify `${API_BASE}/health` returns JSON.
+
+### Common error: `Failed to fetch`
+
+Usually caused by one of these:
+1. Backend URL is wrong/unreachable.
+2. CORS is blocking your frontend origin.
+3. Mixed-content: frontend is `https` but backend is `http`.
+
+Fix:
+- Deploy backend over HTTPS.
+- Set `ALLOWED_ORIGINS=*` (or explicitly include your Netlify domain).
+- Confirm `${API_BASE}/health` works in browser.
+
+## API Endpoints
+
+- `POST /upload-macro`
+- `POST /analyze-macro`
+- `POST /upload-inputs`
+- `POST /run-macro`
+- `GET /download/:fileId`
+
+## Macro execution notes
+
+- On Windows, macro execution uses PowerShell + Excel COM automation (`backend/scripts/run_macro.ps1`).
+- On non-Windows environments, the backend creates a copy of the uploaded workbook as a development fallback.
+
+## Security controls
+
+- Upload extension validation.
+- Upload file size limits.
+- Basic suspicious macro pattern checks before execution.
