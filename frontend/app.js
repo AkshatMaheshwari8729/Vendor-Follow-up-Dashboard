@@ -21,10 +21,14 @@ const refs = {
   toast: document.getElementById('toast'),
   logSection: document.getElementById('logSection'),
   dropzone: document.getElementById('dropzone'),
+  apiBaseInput: document.getElementById('apiBaseInput'),
+  saveApiBaseBtn: document.getElementById('saveApiBaseBtn'),
 };
 
-const apiBase =
+const getDefaultApiBase = () =>
   window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+
+let apiBase = localStorage.getItem('vendor_api_base') || getDefaultApiBase();
 
 const showLoader = (show) => refs.loader.classList.toggle('hidden', !show);
 
@@ -36,6 +40,19 @@ const toast = (message, isError = false) => {
 
 const setLogs = (text) => {
   refs.logSection.textContent = text || '';
+};
+
+const saveApiBase = () => {
+  const value = refs.apiBaseInput.value.trim();
+  if (!value) {
+    toast('Please provide a valid API base URL.', true);
+    return;
+  }
+
+  apiBase = value.replace(/\/+$/, '');
+  localStorage.setItem('vendor_api_base', apiBase);
+  toast(`API URL saved: ${apiBase}`);
+  setLogs(`API URL updated to ${apiBase}`);
 };
 
 const uploadMacro = async () => {
@@ -278,7 +295,9 @@ refs.uploadMacroBtn.addEventListener('click', uploadMacro);
 refs.inputsForm.addEventListener('submit', uploadInputs);
 refs.runMacroBtn.addEventListener('click', runMacro);
 refs.downloadBtn.addEventListener('click', downloadOutput);
+refs.saveApiBaseBtn.addEventListener('click', saveApiBase);
 wireDragAndDrop();
+refs.apiBaseInput.value = apiBase;
 
 fetch(`${apiBase}/health`)
   .then((res) => {
