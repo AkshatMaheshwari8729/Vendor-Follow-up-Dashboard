@@ -17,11 +17,12 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
   .map((item) => item.trim())
   .filter(Boolean);
+const allowAllOrigins = !allowedOrigins.length || allowedOrigins.includes('*');
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || !allowedOrigins.length || allowedOrigins.includes(origin)) {
+      if (!origin || allowAllOrigins || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
       }

@@ -65,6 +65,18 @@ Fix:
 2. Save it and retry upload.
 3. Verify `${API_BASE}/health` returns JSON.
 
+### Common error: `Failed to fetch`
+
+Usually caused by one of these:
+1. Backend URL is wrong/unreachable.
+2. CORS is blocking your frontend origin.
+3. Mixed-content: frontend is `https` but backend is `http`.
+
+Fix:
+- Deploy backend over HTTPS.
+- Set `ALLOWED_ORIGINS=*` (or explicitly include your Netlify domain).
+- Confirm `${API_BASE}/health` works in browser.
+
 ## API Endpoints
 
 - `POST /upload-macro`

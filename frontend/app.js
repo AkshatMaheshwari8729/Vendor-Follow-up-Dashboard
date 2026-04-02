@@ -57,7 +57,14 @@ const ensureApiBase = () => {
 
 const apiFetchJson = async (endpoint, options = {}) => {
   ensureApiBase();
-  const response = await fetch(`${apiBase}${endpoint}`, options);
+  let response;
+  try {
+    response = await fetch(`${apiBase}${endpoint}`, options);
+  } catch (error) {
+    throw new Error(
+      `Failed to fetch ${endpoint}. Check API URL, CORS, and HTTPS (frontend https cannot call http backend).`
+    );
+  }
   const contentType = response.headers.get('content-type') || '';
 
   if (!contentType.includes('application/json')) {
